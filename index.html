@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ESP32-C3 Data Visualization</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  <!-- 引入 Chart.js 库 -->
+</head>
+<body>
+    <h1>ESP32-C3 Random Number Visualization</h1>
+    <canvas id="myChart" width="800" height="400"></canvas>  <!-- 画布用于显示图表 -->
+    <script>
+        // 获取数据
+        async function fetchData() {
+            const response = await fetch('data.json');  // 从 GitHub 获取 data.json
+            const data = await response.json();  // 解析为 JSON
+            return data;
+        }
+
+        // 更新图表
+        function updateChart(chart, data) {
+            chart.data.labels = data.map(entry => new Date(entry.timestamp * 1000).toLocaleTimeString());  // 时间戳转换为时间
+            chart.data.datasets[0].data = data.map(entry => entry.value);  // 更新数据
+            chart.update();  // 刷新图表
+        }
+
+        // 初始化
+        async function init() {
+            const ctx = document.getElementById('myChart').getContext('2d');  // 获取画布上下文
+            const chart = new Chart(ctx, {  // 创建 Chart.js 实例
+                type: 'line',  // 折线图
+                data: {
+                    labels: [],  // X 轴标签（时间）
+                    datasets: [{
+                        label: 'Random Number',  // 数据标签
+                        data: [],  // Y 轴数据（随机数）
+                        borderColor: 'blue',  // 线条颜色
+                        fill: false  // 不填充区域
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: { title: { display: true, text: 'Time' } },  // X 轴标题
+                        y: { title: { display: true, text: 'Value' } }  // Y 轴标题
+                    }
+                }
+            });
+
+            // 每秒更新一次图表
+            setInterval(async () => {
+                const data = await fetchData();
+                updateChart(chart, data);
+            }, 1000);
+        }
+
+        init();  // 初始化
+    </script>
+</body>
+</html>
