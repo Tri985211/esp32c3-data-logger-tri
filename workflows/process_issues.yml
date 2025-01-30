@@ -15,7 +15,7 @@ jobs:
       - name: 获取 Issues 数据
         id: fetch_issues
         run: |
-          curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          curl -s -H "Authorization: token ${{ secrets.MY_GITHUB_TOKEN }}" \
                "https://api.github.com/repos/${{ github.repository }}/issues?state=open" > issues.json
 
       - name: 解析 Issues 并更新 data.json
