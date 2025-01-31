@@ -1,0 +1,33 @@
+name: Process Issues and Update Data
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # 每 5 分钟运行一次
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出仓库代码
+        uses: actions/checkout@v3
+
+      - name: 获取 Issues 数据
+        id: fetch_issues
+        run: |
+          curl -s -H "Authorization: token ${{ secrets.MY_GITHUB_TOKEN }}" \
+               "https://api.github.com/repos/${{ github.repository }}/issues?state=open" > issues.json
+
+      - name: 解析 Issues 并更新 data.json
+        run: |
+          echo "[]" > data.json
+          cat issues.json | jq '[.[] | {timestamp: .title, value: (.body | sub("Random Value: "; "")) | tonumber }]' > data.json
+          cat data.json
+
+      - name: 提交更新到 GitHub
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add data.json
+          git commit -m "Updated data.json from issues"
+          git push
